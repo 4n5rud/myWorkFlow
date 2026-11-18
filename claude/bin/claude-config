@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Version control for Claude Code settings in ~/.claude, without putting a .git folder inside it.
+# History lives in ~/.claude-config.git (local only, no remote).
+#   claude-config status            what changed
+#   claude-config diff              show changes
+#   claude-config save "message"    stage tracked files + new files in the tracked areas, then commit
+#   claude-config log               history
+#   claude-config <any git args>    passthrough
+set -e
+GIT=(git --git-dir="$HOME/.claude-config.git" --work-tree="$HOME/.claude")
+
+# what is tracked (relative to ~/.claude). Logs, transcripts, caches and session data stay out.
+TRACKED=(
+  settings.json
+  CLAUDE.md
+  bin
+  hooks
+  skills/4n5rud-guides
+  skills/weekly-work-notes
+  skills/4n5rud-weekly-report
+  skills/4n5rud-todo
+  skills/4n5rud-new-project
+  skills/4n5rud-plan-doc
+  skills/4n5rud-qa
+  git-hooks
+  harness.conf
+  harness
+)
+memory_files() { (cd "$HOME/.claude" && ls projects/*/memory/*.md 2>/dev/null); }
+
+if [[ ! -d "$HOME/.claude-config.git" ]]; then
+  git init -q --bare "$HOME/.claude-config.git"
+  "${GIT[@]}" config status.showUntrackedFiles no
+fi
+
+case "${1:-status}" in
+  save)
+    shift
+    (cd "$HOME/.claude" || exit 1
+     present=(); for t in "${TRACKED[@]}"; do [[ -e "$t" ]] && present+=("$t"); done
+     "${GIT[@]}" add -A -- "${present[@]}"
+     "${GIT[@]}" add -u -- projects 2>/dev/null
+     mf=$(memory_files); [[ -n "$mf" ]] && "${GIT[@]}" add -- $mf)
+    # add -u only updates files already tracked (deleted memories); it never picks up transcripts
+    "${GIT[@]}" -c user.name="$(git config --global user.name || echo me)" \
+                -c user.email="$(git config --global user.email || echo me@local)" \
+                commit -q -m "${1:-설정 저장 $(date '+%Y-%m-%d %H:%M')}" && "${GIT[@]}" log --oneline -1
+    ;;
+  *) "${GIT[@]}" "$@" ;;
+esac

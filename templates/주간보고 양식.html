@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>주간업무보고 ({{기간_점}})</title>
+<style>
+@page { size: A4; margin: 22mm 20mm; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Pretendard", "Apple SD Gothic Neo", "맑은 고딕", -apple-system, sans-serif;
+  font-size: 11pt; line-height: 1.55; color: #000; background: #fff;
+  padding: 28px 36px; max-width: 920px; margin: 0 auto;
+  -webkit-print-color-adjust: exact;
+}
+h1 {
+  font-size: 20pt; font-weight: 800; text-align: center;
+  letter-spacing: 0.8em;
+  margin-bottom: 12px;
+}
+.header-row {
+  display: flex; justify-content: space-between;
+  margin-bottom: 9px; font-size: 11pt;
+}
+table {
+  width: 100%; border-collapse: collapse;
+  margin-top: 6px;
+}
+th, td {
+  border: 1px solid #000; padding: 8px 10px;
+  vertical-align: top;
+  text-align: left;
+  font-size: 11pt;
+  line-height: 1.6;
+}
+th {
+  background: #fff;
+  font-weight: 700;
+  text-align: center;
+  padding: 8px 12px;
+}
+.col-label {
+  width: 70px;
+  text-align: center;
+  font-weight: 700;
+  background: #fff;
+  vertical-align: middle;
+}
+.content-cell {
+  min-height: 480px;
+  font-size: 10pt;
+  line-height: 1.45;
+}
+.content-cell h3 {
+  font-size: 10pt; font-weight: 700;
+  margin: 7px 0 1px;
+}
+.content-cell h3:first-child { margin-top: 0; }
+.content-cell ul {
+  margin: 0 0 1px 15px;
+  padding: 0;
+}
+.content-cell li {
+  margin-bottom: 0;
+}
+.content-cell .sub {
+  font-size: 9pt; color: #333;
+}
+@media print {
+  body { padding: 0; }
+}
+</style>
+</head>
+<body>
+<!--
+  주간보고 양식 (공통 양식)
+  채우는 법은 ~/.claude/skills/4n5rud-weekly-report/SKILL.md 를 따른다.
+  {{...}} 자리를 채우고, 항목 수는 내용에 맞게 늘리거나 줄인다.
+  .sub 안의 [번호]는 고객사 요구사항 번호가 있는 프로젝트에서만 쓴다. 없으면 지운다.
+  금요일 당일에 할 일은 끝나지 않았으면 항목 끝에 <span class="sub">(진행중)</span> 을 붙인다.
+-->
+
+<h1>주 간 업 무 보 고</h1>
+
+<div class="header-row">
+  <div>부서 : {{REPORT_DEPT}}</div>
+  <div>성명 : {{REPORT_NAME}}</div>
+</div>
+
+<table>
+  <colgroup>
+    <col style="width:70px">
+    <col style="width:48%">
+    <col style="width:48%">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>금 주 실 적 ({{금주_시작}}(월) ~ {{금주_끝}}(금))</th>
+      <th>차 주 계 획 ({{차주_시작}}(월) ~ {{차주_끝}}(금))</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-label">업무<br>현황</td>
+      <td class="content-cell">
+
+        <h3>1. {{금주 묶음 제목}} <span class="sub">[{{요구사항 번호}}]</span></h3>
+        <ul>
+          <li>{{한 일, 핵심어는 <b>굵게</b>}} <span class="sub">({{보충 설명}})</span></li>
+          <li>{{금요일 당일 작업 예}} <span class="sub">(진행중)</span></li>
+        </ul>
+
+        <h3>2. 개발 진행 현황</h3>
+        <ul>
+          <li>［연결 완료］ {{완료된 외부 연동}}</li>
+          <li>［연결 예정］ {{남은 외부 연동}} <span class="sub">: {{조건}}</span></li>
+        </ul>
+
+      </td>
+      <td class="content-cell">
+
+        <h3>1. {{차주 묶음 제목}} <span class="sub">[{{요구사항 번호}}]</span></h3>
+        <ul>
+          <li>{{할 일}}</li>
+        </ul>
+
+        <h3>2. 개발 진행 현황</h3>
+        <ul>
+          <li>［{{조건}} 후］ {{조건이 풀리면 할 일}}</li>
+        </ul>
+
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="margin-top:12px;font-size:10pt;">※ 참고사항: {{휴무, 일정 변경 같은 참고사항. 없으면 이 줄을 지운다}}</p>
+
+</body>
+</html>

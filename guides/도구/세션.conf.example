@@ -1,0 +1,12 @@
+# <이름>=<워크트리 경로 조각>
+# 경로 조각은 터미널 목록의 worktreePath 와 부분 일치로 맞춘다.
+# ⚠ 하이픈·띄어쓰기까지 실제 폴더명 그대로 적는다. 눈대중으로 적으면
+#   경로가 안 맞아 터미널을 못 찾고 "터미널 없음" 으로 조용히 빠진다.
+
+기획=workspaces/foo/기획
+be=workspaces/foo/be
+admin=workspaces/foo/admin
+app=workspaces/foo/app
+이슈1=workspaces/foo/이슈1
+이슈2=workspaces/foo/이슈2
+main=Desktop/work/foo

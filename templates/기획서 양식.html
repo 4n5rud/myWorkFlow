@@ -1,0 +1,46 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{제목}}</title>
+<!--
+  문서 화면 틀 (claude-work-harness). 왼쪽에 목차, 오른쪽에 내용이 오는 모양만 정한다. 장 구성은 정하지 않는다.
+  - 내용은 <main> 안에 쓴다. 장은 <h2>, 작은 절은 <h3>로 나눈다. 왼쪽 목차는 <h2>에서 저절로 만들어진다(id도 저절로 붙는다).
+  - 장의 이름과 개수는 가진 내용에 맞춰 정한다. 근거가 없는 장을 만들거나 빈칸을 채우려고 내용을 지어내지 않는다.
+  - 표(table), 인용(blockquote), 목록(ul, ol), 강조(strong) 모양은 아래 스타일에 들어 있다.
+  - 오른쪽 위 화이트, 블랙 단추와 아래 스크립트는 지우지 않는다. 다 쓴 뒤 이 주석은 지운다.
+-->
+<style>
+:root{--bg:#fff;--text:#1a1a1a;--sub:#5a5a5a;--line:#e3e3e3;--head:#f6f6f6;--red:#db3930}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16171a;--text:#e8e8e8;--sub:#a3a3a3;--line:#33353a;--head:#1f2125;--red:#ff6b62;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#16171a;--text:#e8e8e8;--sub:#a3a3a3;--line:#33353a;--head:#1f2125;--red:#ff6b62;color-scheme:dark}
+:root[data-theme="light"]{color-scheme:light}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.75 Pretendard,-apple-system,"Apple SD Gothic Neo",sans-serif}
+.wrap{display:grid;grid-template-columns:240px minmax(0,1fr);gap:40px;max-width:1240px;margin:0 auto;padding:40px 16px 120px}
+nav{position:sticky;top:24px;align-self:start;display:flex;flex-direction:column;gap:6px;font-size:14px;max-height:90vh;overflow:auto}
+nav a{color:var(--sub);text-decoration:none;padding:4px 8px;border-radius:6px}nav a:hover,nav a.on{background:var(--head);color:var(--text)}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}nav{position:static;max-height:none;flex-direction:row;flex-wrap:wrap}}
+h1{font-size:28px;line-height:1.35;margin:0 0 12px}h2{font-size:21px;margin:56px 0 14px;padding-top:14px;border-top:2px solid var(--text);scroll-margin-top:16px}h3{font-size:17px;margin:30px 0 8px}
+blockquote{margin:14px 0;padding:10px 16px;border-left:3px solid var(--red);color:var(--sub);background:var(--head)}blockquote p{margin:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px;line-height:1.6;display:block;overflow-x:auto;max-width:100%}
+th,td{border:1px solid var(--line);padding:8px 10px;vertical-align:top;text-align:left}th{background:var(--head);white-space:nowrap}
+strong{color:var(--red)}hr{border:0;border-top:1px solid var(--line);margin:36px 0}li{margin:3px 0}
+.theme{position:fixed;top:12px;right:16px;z-index:10;display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--bg);font-size:13px}
+.theme button{border:0;background:transparent;color:var(--sub);padding:5px 12px;cursor:pointer;font:inherit}.theme button[aria-pressed="true"]{background:var(--text);color:var(--bg)}
+@media print{.theme,nav{display:none}.wrap{grid-template-columns:1fr}}
+</style></head>
+<body><div class="theme" role="group" aria-label="화면 색"><button type="button" data-set="light">화이트</button><button type="button" data-set="dark">블랙</button></div>
+<div class="wrap"><nav aria-label="목차"></nav><main>
+<h1>{{제목}}</h1>
+
+</main></div>
+<script>
+(function(){var r=document.documentElement,k="plan-theme",t=null;try{t=localStorage.getItem(k)}catch(e){}
+if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}
+function set(v){r.setAttribute("data-theme",v);try{localStorage.setItem(k,v)}catch(e){}document.querySelectorAll(".theme button").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.set===v))})}
+set(t);document.querySelectorAll(".theme button").forEach(function(b){b.addEventListener("click",function(){set(b.dataset.set)})});
+// left table of contents from the h2 headings actually written
+var nav=document.querySelector("nav"),hs=document.querySelectorAll("main h2");
+hs.forEach(function(h,i){if(!h.id)h.id="s"+i;var a=document.createElement("a");a.href="#"+h.id;a.textContent=h.textContent;nav.appendChild(a)});
+if("IntersectionObserver"in window){var links=nav.querySelectorAll("a");
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(l){l.classList.toggle("on",l.getAttribute("href")==="#"+e.target.id)})}})},{rootMargin:"0px 0px -70% 0px"});
+hs.forEach(function(h){io.observe(h)})}
+})();
+</script>
+</body></html>

@@ -1,0 +1,139 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{화면이나 기능}} QA 점검</title>
+<!--
+  QA 보고서 공통 양식 (claude-work-harness, /4n5rud-qa). 2026-11-09 사용자 지시로 실제 목업 보고서(전, 후 비교)의 틀을 떼어 냈다.
+  채우는 법
+  - {{ }} 자리를 채우고 이 주석과 class="guide" 안내 상자는 다 쓴 뒤 지운다.
+  - 문제 하나에 section.case 하나. 문제마다 육하원칙(누가, 어디서, 무엇을, 어떻게, 왜)과 재현 방법을 쓴다(08 보고 지침).
+  - 사진은 qa-capture.mjs가 찍은 것을 쓴다. 빨간 상자와 번호는 지금 화면의 문제 위치, 초록 상자는 고친 모습 흉내다.
+    고친 모습은 브라우저에서 스타일만 덧씌운 흉내라는 것을 사진 설명에 꼭 밝힌다. 코드로 고칠 수 없는 문제는 "후" 사진 대신 해결안 글만 쓴다.
+  - 사진은 data URI로 넣어 파일 하나로 만든다(보내기 쉽게). 계정, 비밀번호, 토큰, 개인정보가 사진에 보이면 가린 뒤 넣는다.
+  - 절대 경로, 개인 노트 위치, 요청 본문과 헤더 값, 쿠키는 쓰지 않는다. 주소는 로컬 주소와 경로만 쓴다.
+  - 문장은 05 쇠맛 줄이기를 따른다. 확인하지 못한 것은 "(추정)"을 붙이고 6장에 모은다.
+-->
+<style>
+:root{--bg:#f6f7f7;--card:#fff;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--red:#c62828;--redbg:#fdecec;--grn:#1b7a3a;--grnbg:#e9f6ee;--teal:#0f766e;--soft:#ecfdf5;--warn:#fff7e6;--warnink:#7a4b00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111416;--card:#1b1f22;--ink:#e5e7eb;--muted:#9ca3af;--line:#2d3439;--soft:#0f2a25;--redbg:#3a1d1d;--red:#f2a3a3;--grnbg:#173323;--grn:#9fdcb3;--warn:#3a2e14;--warnink:#f1cf8a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111416;--card:#1b1f22;--ink:#e5e7eb;--muted:#9ca3af;--line:#2d3439;--soft:#0f2a25;--redbg:#3a1d1d;--red:#f2a3a3;--grnbg:#173323;--grn:#9fdcb3;--warn:#3a2e14;--warnink:#f1cf8a;color-scheme:dark}
+:root[data-theme="light"]{color-scheme:light}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;overflow-wrap:anywhere;word-break:keep-all}
+main{max-width:1240px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:24px;margin:0 0 6px}h2{font-size:20px;margin:0 0 8px}h3{font-size:17px;margin:22px 0 8px}
+.top{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}.top p{margin:0 0 6px}.top p.ask{font-weight:700;color:var(--grn);margin:0}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:16px 0}
+.sum div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}.sum b{display:block;font-size:24px}.sum span{color:var(--muted);font-size:13px}
+.note{border-left:4px solid var(--teal);padding:8px 12px;background:var(--soft);border-radius:0 8px 8px 0;margin:12px 0}
+nav.toc ol{columns:2;column-gap:28px;padding-left:22px;margin:6px 0}@media (max-width:600px){nav.toc ol{columns:1}}nav.toc a{color:var(--teal)}
+section.case{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 18px;margin:20px 0}
+dl.facts{display:grid;grid-template-columns:110px minmax(0,1fr);gap:6px 14px;margin:0 0 12px}dl.facts dt{font-weight:700;color:var(--muted)}dl.facts dd{margin:0}
+@media (max-width:600px){dl.facts{grid-template-columns:minmax(0,1fr)}}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:99px;margin-left:6px;white-space:nowrap;vertical-align:2px}
+.tag.hi{background:var(--redbg);color:var(--red)}.tag.mid{background:var(--warn);color:var(--warnink)}.tag.lo{background:var(--soft);color:var(--teal)}
+ol.steps{padding-left:22px;margin:6px 0 8px}ol.steps li{margin:2px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}th{color:var(--muted);font-weight:600}.tbl{overflow-x:auto;max-width:100%}
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:10px 0 6px}.pair.mob{max-width:820px}.pair.one{grid-template-columns:minmax(0,1fr)}
+@media (max-width:700px){.pair{grid-template-columns:minmax(0,1fr)}}
+figure{margin:0;min-width:0;display:flex;flex-direction:column}figure>img{margin-top:auto;display:block;width:100%;height:auto;border-radius:8px;background:#fff;cursor:zoom-in}
+figure.bf>img{border:3px solid var(--red)}figure.af>img{border:3px solid var(--grn)}figcaption{font-size:13px;color:var(--muted);margin-top:4px}
+.cap-box{border-radius:8px;padding:10px 12px;margin:0 0 6px;font-size:16px;line-height:1.55;font-weight:600}
+.cap-box .lbl{display:inline-block;font-size:12px;font-weight:800;padding:1px 8px;border-radius:99px;margin-right:6px;vertical-align:1px}
+.cap-box.b{background:var(--redbg);color:var(--red);border:2px solid var(--red)}.cap-box.b .lbl{background:var(--red);color:#fff}
+.cap-box.a{background:var(--grnbg);color:var(--grn);border:2px solid var(--grn)}.cap-box.a .lbl{background:var(--grn);color:#fff}
+.cap-box .it{display:block;margin-top:4px;font-size:15px}.cap-box .it.rsn{font-size:13.5px;font-weight:500}.cap-box .it.rsn b{margin-right:4px}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:10px 0}
+.opt{border:1px solid var(--line);border-radius:10px;padding:10px 14px}.opt h4{margin:0 0 6px;font-size:15px}.opt p{margin:4px 0}.opt.best{border:2px solid var(--grn);background:var(--grnbg)}
+.small{font-size:14px;color:var(--muted);margin:10px 0 0}.warn{background:var(--warn);color:var(--warnink);border-radius:8px;padding:8px 12px;margin:12px 0 0;font-size:14px}
+.pass{color:var(--grn);font-weight:700}.fail{color:var(--red);font-weight:700}
+code{font-size:13px;background:var(--soft);padding:0 4px;border-radius:4px}
+.guide{border:1px dashed var(--muted);background:var(--warn);color:var(--warnink);padding:8px 12px;font-size:14px;border-radius:8px}
+.theme{position:fixed;top:12px;right:16px;z-index:10;display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--card);font-size:13px}
+.theme button{border:0;background:transparent;color:var(--muted);padding:5px 12px;cursor:pointer;font:inherit}.theme button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;z-index:20;overflow:auto;padding:24px;cursor:zoom-out}#lightbox.on{display:block}#lightbox img{display:block;max-width:100%;margin:0 auto}
+@media print{.theme,#lightbox{display:none}}
+</style></head>
+<body><div class="theme" role="group" aria-label="화면 색"><button type="button" data-set="light">화이트</button><button type="button" data-set="dark">블랙</button></div>
+<main><h1>{{화면이나 기능}} QA 점검</h1>
+<div class="top">
+<p>{{무엇을 어떻게 점검했고 무엇이 나왔는지 두세 문장. 예: 화면 N곳을 창 폭 1280과 390에서 열어 확인했고, 고칠 곳 N건이 나왔습니다.}}</p>
+<p>{{권하는 해결 방향 한 문장. 코드는 고치지 않았고 "후" 사진은 브라우저에서 스타일만 덧씌운 흉내라는 것을 밝힌다.}}</p>
+<p class="ask">정할 것: {{① … ② …. 없으면 "없음"}}</p>
+</div>
+<div class="sum">
+<div><b>{{N}}곳</b><span>점검한 화면</span></div>
+<div><b>{{N}}건</b><span>고칠 곳(높음 {{N}}, 중간 {{N}}, 낮음 {{N}})</span></div>
+<div><b>{{N}}건</b><span>자동 점검에서 걸린 것(콘솔 오류, 실패한 요청, 가로 넘침, 깨진 이미지)</span></div>
+<div><b>{{N}}건</b><span>확인하지 못한 것</span></div>
+</div>
+<div class="note">찍은 곳: {{로컬 주소와 앱 이름}}, 코드 {{커밋 짧은 번호}}, 창 폭 {{1280, 390}}, {{계정 종류(예: 관리자 시험 계정). 아이디와 비밀번호는 쓰지 않는다}}. 빨간 테두리는 지금 화면이고 빨간 상자와 번호가 문제 위치입니다. 초록 테두리는 해결안을 브라우저에서 흉내 낸 화면입니다. {{찍지 못한 곳과 이유, 바꾸지 않은 것(로컬 DB 등)}}</div>
+<nav class="toc"><ol>
+<li><a href="#scope">점검 범위와 방법</a></li>
+<li><a href="#issues">고칠 곳</a></li>
+<li><a href="#plans">해결안</a></li>
+<li><a href="#after">해결 후 미리보기</a></li>
+<li><a href="#pass">통과한 점검</a></li>
+<li><a href="#etc">확인하지 못한 것</a></li>
+</ol></nav>
+
+<section class="case" id="scope">
+<h2>1. 점검 범위와 방법</h2>
+<p class="guide">어떤 화면을 어떤 사용자 흐름으로 확인했는지 표로 쓴다. 흐름은 실제 앱 코드와 기획서를 읽고 정한 것만 쓰고, 임의로 아무 단추나 누르지 않았다는 것을 밝힌다. 자동 점검 항목(콘솔 오류, 4xx와 5xx 요청, 가로 넘침, 깨진 이미지)과 눈으로 본 항목(배치, 문구, 색 대비, 빈 상태, 오류 상태, 키보드 초점)을 나눠 적는다.</p>
+<div class="tbl"><table>
+<tr><th>화면</th><th>경로</th><th>확인한 흐름과 상태</th><th>창 폭</th><th>결과</th></tr>
+<tr><td>{{화면 이름}}</td><td><code>{{/경로}}</code></td><td>{{로그인 뒤 목록 보기, 검색, 빈 결과, 오류 등}}</td><td>{{1280, 390}}</td><td><span class="fail">고칠 곳 {{N}}</span> 또는 <span class="pass">통과</span></td></tr>
+</table></div>
+</section>
+
+<section class="case" id="issues">
+<h2>2. 고칠 곳</h2>
+<p class="guide">문제 하나에 h3 하나. 제목 끝에 심각도 꼬리표(높음 hi, 중간 mid, 낮음 lo)를 붙인다. 사진 속 번호와 제목 번호를 맞춘다. 재현하지 못한 문제는 "재현하지 못함"이라고 쓴다.</p>
+<h3>{{번호}}. {{문제 한 줄}}<span class="tag hi">높음</span></h3>
+<dl class="facts">
+<dt>누가</dt><dd>{{어떤 사용자}}</dd>
+<dt>어디서</dt><dd>{{앱, 화면, 가는 경로}}</dd>
+<dt>무엇을</dt><dd>{{사용자가 한 행동}}</dd>
+<dt>어떻게</dt><dd>실제: {{실제 결과}}. 기대: {{기대 결과}}</dd>
+<dt>왜</dt><dd>확인함: {{코드나 화면에서 확인한 원인}}. 추정: {{확인하지 못한 원인이 있으면}}</dd>
+<dt>재현</dt><dd><ol class="steps"><li>{{조건}}</li><li>{{단계}}</li></ol>빈도: {{매번, N번 중 N번}}</dd>
+</dl>
+<div class="pair"><figure class="bf"><div class="cap-box b"><span class="lbl">전</span>{{지금 무엇이 문제인지 한 줄}}</div><img src="{{data:image/png;base64,…}}" alt="{{화면}} 지금"><figcaption>{{화면}} 지금, 창 폭 {{N}}</figcaption></figure>
+<figure class="af"><div class="cap-box a"><span class="lbl">후</span>{{고치면 어떻게 보이는지 한 줄}}<span class="it rsn"><b>이유</b>{{왜 이게 맞는지}}</span></div><img src="{{data:image/png;base64,…}}" alt="{{화면}} 해결안 흉내"><figcaption>{{화면}} 해결안 흉내(스타일만 덧씌움)</figcaption></figure></div>
+</section>
+
+<section class="case" id="plans">
+<h2>3. 해결안</h2>
+<p class="guide">문제마다, 또는 묶어서 안을 두세 개 낸다. 권하는 안(가장 안전한 정석안)에 best를 붙이고 무엇이 바뀌는지, 드는 비용(인일 또는 반나절), 왜 가장 안전한지를 쓴다. 지금 안이 정석이면 그렇다고 한 줄로 밝힌다.</p>
+<div class="opts">
+<div class="opt best"><h4>안 A (권장) {{이름}}</h4><p>바뀌는 것: {{…}}</p><p>비용: {{…}}</p><p>가장 안전한 이유: {{…}}</p></div>
+<div class="opt"><h4>안 B {{이름}}</h4><p>바뀌는 것: {{…}}</p><p>비용: {{…}}</p><p>권하지 않는 이유: {{…}}</p></div>
+</div>
+</section>
+
+<section class="case" id="after">
+<h2>4. 해결 후 미리보기</h2>
+<p class="small">브라우저에서 스타일만 덧씌워 흉내 냈습니다. 화면 구조와 데이터는 그대로입니다.</p>
+<p class="guide">2장에 넣지 않은 나머지 화면의 전, 후 사진을 짝으로 모은다. 사진마다 위에 빨간 "전" 상자와 초록 "후" 상자(이유 포함)를 붙인다. 흉내로 보여 줄 수 없는 해결안(서버 수정, 동작 변경)은 사진 대신 글로 쓴다.</p>
+<div class="pair"><figure class="bf"><div class="cap-box b"><span class="lbl">전</span>{{…}}</div><img src="{{…}}" alt="{{…}} 지금"><figcaption>{{…}} 지금</figcaption></figure><figure class="af"><div class="cap-box a"><span class="lbl">후</span>{{…}}<span class="it rsn"><b>이유</b>{{…}}</span></div><img src="{{…}}" alt="{{…}} 해결안 흉내"><figcaption>{{…}} 해결안 흉내</figcaption></figure></div>
+</section>
+
+<section class="case" id="pass">
+<h2>5. 통과한 점검</h2>
+<p class="guide">통과한 것도 빠짐없이 적는다. 통과한 화면은 사진을 찍지 않는다(캡처는 실패할 때만).</p>
+<ul><li>{{화면, 흐름}}: {{확인한 내용}} <span class="pass">통과</span></li></ul>
+</section>
+
+<section class="case" id="etc">
+<h2>6. 확인하지 못한 것</h2>
+<p class="guide">띄우지 못한 앱, 계정이 없어 못 본 화면, 자동으로 확인할 수 없는 것(서버 내부 동작, 결제 같은 외부 연동), (추정)으로 쓴 것을 모은다.</p>
+<ul><li>{{무엇}}: {{이유}}</li></ul>
+</section>
+</main>
+<div id="lightbox"><img alt=""></div>
+<script>
+(function(){var r=document.documentElement,k="qa-theme",t=null;try{t=localStorage.getItem(k)}catch(e){}
+if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}
+function set(v){r.setAttribute("data-theme",v);try{localStorage.setItem(k,v)}catch(e){}document.querySelectorAll(".theme button").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.set===v))})}
+set(t);document.querySelectorAll(".theme button").forEach(function(b){b.addEventListener("click",function(){set(b.dataset.set)})});
+var lb=document.getElementById("lightbox"),big=lb.querySelector("img");
+document.addEventListener("click",function(e){var x=e.target;if(x.tagName==="IMG"&&!lb.contains(x)){big.src=x.src;lb.classList.add("on");lb.scrollTop=0;return}if(lb.contains(x))lb.classList.remove("on")});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")lb.classList.remove("on")})})();
+</script>
+</body></html>
