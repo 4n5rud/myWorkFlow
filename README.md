@@ -108,4 +108,5 @@ bash uninstall.sh
 ## 출처와 라이선스
 
 - `guides/17 기술 문서 쓰기.md`는 [토스 테크니컬 라이팅 가이드](https://github.com/toss/technical-writing)(Viva Republica)를 바탕으로 고친 글이라 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ko)을 따른다.
+- `guides/21 화면 문구와 장식 덜어내기.md`의 규칙 틀과 `claude/bin/ui-tells.py`는 [unslop-ui](https://github.com/felipebasurto/unslop-ui)(Felipe Basurto, MIT)에서 왔다. 스크립트 머리에 원본 라이선스 전문을 남겼다.
 - 그 밖의 파일은 따로 라이선스를 정하지 않았다.
